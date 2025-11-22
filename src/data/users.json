@@ -1,0 +1,14 @@
+[
+  {
+    "username": "test",
+    "email": "",
+    "password": "b6119adae59e23c95c8b7cd99427900c:1136b2a19e32b50eb6132de626e608e679d8f3a0eb50fcaec072ea7ce0a95aa83da853fb11ea16cd5e9403b728eddc3d42cbf62d92d7cc1d591979e4d575fa45",
+    "role": "user"
+  },
+  {
+    "username": "testc",
+    "email": "",
+    "password": "3b7c6ee1edbe6b0d6706b4e313dfdb4f:5c5a5604818d39d3112bc2febbd69fbb0793eaf690e83bc1c095750be8dd9e85222a1c3afba31e96758d83e1a5eed2b98b1e16d6adac3cdde5f88edb48990844",
+    "role": "creator"
+  }
+]

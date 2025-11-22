@@ -1,65 +1,119 @@
-import Image from "next/image";
+"use client"
+import creatorsData from "../data/creators.json";
+import projectsData from "../data/projects.json";
+import CreatorCard from "../components/CreatorCard";
+import ProjectCard from "../components/ProjectCard";
 
+import { useState, useEffect } from "react";
 export default function Home() {
+  const [projects, setProjects] = useState(projectsData);
+  const [creators, setCreators] = useState(creatorsData);
+  const [search, setSearch] = useState("");
+  const [filterCreator, setFilterCreator] = useState("");
+  const [page, setPage] = useState(0);
+  const itemsPerPage = 3;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        // Prefer server-side persisted projects/creators
+        const [projRes, creatorsRes] = await Promise.all([
+          fetch('/api/projects').catch(() => null),
+          fetch('/api/creators').catch(() => null),
+        ]);
+
+        if (projRes && projRes.ok) {
+          const projJson = await projRes.json();
+          if (!cancelled) setProjects(Array.isArray(projJson) ? projJson : projectsData);
+        } else {
+          // fallback to localStorage (edits) or static import
+          const savedProjects = JSON.parse(localStorage.getItem('projectsData') || 'null');
+          if (!cancelled) setProjects(Array.isArray(savedProjects) ? savedProjects : projectsData);
+        }
+
+        if (creatorsRes && creatorsRes.ok) {
+          const creatorsJson = await creatorsRes.json();
+          if (!cancelled) setCreators(Array.isArray(creatorsJson) ? creatorsJson : creatorsData);
+        } else {
+          if (!cancelled) setCreators(creatorsData);
+        }
+      } catch (err) {
+        // On any error, fall back to local copies
+        const savedProjects = JSON.parse(localStorage.getItem('projectsData') || 'null');
+        if (!cancelled) setProjects(Array.isArray(savedProjects) ? savedProjects : projectsData);
+        if (!cancelled) setCreators(creatorsData);
+      }
+    })();
+    return () => { cancelled = true };
+  }, []);
+
+  // Reset page when filters change
+  useEffect(() => setPage(0), [search, filterCreator]);
+
+  // Filtered projects based on search & selected creator
+  const filteredProjects = projects.filter(p => {
+    const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase());
+    const matchesCreator = filterCreator ? p.creatorId === filterCreator : true;
+    return matchesSearch && matchesCreator;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / itemsPerPage));
+  const pageProjects = filteredProjects.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="max-w-6xl mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4">Explore Projects</h1>
+
+      {/* Search & Filter */}
+      <div className="flex flex-col md:flex-row items-center mb-6 space-y-2 md:space-y-0 md:space-x-4">
+        <input
+          type="text"
+          placeholder="Search projects..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="p-2 border rounded w-full md:w-1/2"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <select
+          value={filterCreator}
+          onChange={e => setFilterCreator(e.target.value)}
+          className="select-filter w-full md:w-1/4"
+        >
+          <option value="">All Creators</option>
+          {creators.map(c => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Project List */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {pageProjects.map(p => (
+          <ProjectCard key={p.id} project={p} />
+        ))}
+      </div>
+
+      {/* Pagination controls */}
+      <div className="flex items-center justify-between mt-6">
+        <div className="text-sm muted">{filteredProjects.length} projects</div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="btn btn-ghost"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Prev
+          </button>
+          <div className="text-sm muted">Page {page + 1} / {totalPages}</div>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={page + 1 >= totalPages}
+            className="btn btn-primary"
           >
-            Documentation
-          </a>
+            Next
+          </button>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
