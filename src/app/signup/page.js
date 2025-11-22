@@ -41,21 +41,24 @@ export default function SignupPage() {
 
       // if role is creator, also add to creators.json with bio + optional image (base64)
       if (role === 'creator') {
-        let imageBase64 = '';
+        let imagePath = '';
         if (imageFile) {
-          imageBase64 = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(imageFile);
-          });
+          const formData = new FormData();
+          formData.append('image', imageFile);
+          const res = await fetch('/api/upload', { method: 'POST', body: formData });
+          if (!res.ok) {
+            throw new Error('Image upload failed');
+          }
+          let data;
+          try { data = await res.json(); } catch (e) { throw new Error('Invalid upload response'); }
+          if (data.path) imagePath = data.path;
         }
         const creatorEntry = {
           id: `creator-${Date.now()}`,
           name: username,
           username,
           bio: bio || '',
-          image: imageBase64 || '/uploads/default-avatar.png',
+          image: imagePath || '/uploads/default-avatar.png',
         };
         await fetch('/api/creators', {
           method: 'POST',
@@ -70,6 +73,7 @@ export default function SignupPage() {
       localStorage.setItem('role', role);
       // notify same-tab listeners that auth changed
       window.dispatchEvent(new Event('authChanged'));
+      window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Signup successful', type: 'success' } }));
       router.push('/redirect');
     } catch (err) {
       console.error(err);

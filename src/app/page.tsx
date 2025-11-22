@@ -11,7 +11,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [filterCreator, setFilterCreator] = useState("");
   const [page, setPage] = useState(0);
-  const itemsPerPage = 3;
+  const itemsPerPage = 6;
 
   useEffect(() => {
     let cancelled = false;

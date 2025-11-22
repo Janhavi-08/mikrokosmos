@@ -5,7 +5,15 @@
     "title": "DIY Vase",
     "description": "Handmade decorative vase",
     "image": "/uploads/project1.jpg",
-    "requests": []
+    "requests": [
+      {
+        "projectId": "project-1",
+        "user": "test",
+        "message": "test",
+        "image": "/uploads/1763812065803-beach.jpg",
+        "status": "pending"
+      }
+    ]
   },
   {
     "id": "project-2",
@@ -164,5 +172,45 @@
         "status": "pending"
       }
     ]
+  },
+  {
+    "id": "project-1763810955435",
+    "creatorId": "creator-1763755996700",
+    "title": "resr",
+    "description": "tsasjfjkljasldkfjalksdjflksjldkfjas",
+    "image": "/uploads/default-project.jpg",
+    "requests": []
+  },
+  {
+    "id": "project-1763811185231",
+    "creatorId": "creator-1763755996700",
+    "title": "trst",
+    "description": "testsdlgjlsdkjfgklsdjflkgjldsfkg",
+    "image": "/uploads/default-project.jpg",
+    "requests": []
+  },
+  {
+    "id": "project-1763811597958",
+    "creatorId": "creator-1763755996700",
+    "title": "test",
+    "description": "jkfjsalkjflkajsflkjslfdj",
+    "image": "/uploads/1763811595512-coffee.jpg",
+    "requests": [
+      {
+        "projectId": "project-1763811597958",
+        "user": "test",
+        "message": "test",
+        "image": "/uploads/1763811640675-beach.jpg",
+        "status": "pending"
+      }
+    ]
+  },
+  {
+    "id": "project-1763812298641",
+    "creatorId": "creator-1763755996700",
+    "title": "erwl",
+    "description": "asjdkfljalskdfjlasjdflkjsdf",
+    "image": "/uploads/default-project.jpg",
+    "requests": []
   }
 ]

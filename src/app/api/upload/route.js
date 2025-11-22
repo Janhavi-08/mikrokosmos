@@ -1,49 +1,32 @@
-import formidable from "formidable";
-import fs from "fs";
-import path from "path";
+import { NextResponse } from 'next/server';
+import fs from 'fs';
+import fsPromises from 'fs/promises';
+import path from 'path';
 
-// Disable bodyParser for file uploads
 export const config = { api: { bodyParser: false } };
 
-export async function POST(req) {
-  const form = new formidable.IncomingForm();
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+export async function POST(request) {
+  try {
+    const formData = await request.formData();
+    const file = formData.get('image');
+    if (!file || typeof file !== 'object' || !('arrayBuffer' in file)) {
+      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    }
+
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const name = (file.name && file.name.replace(/[^a-zA-Z0-9._-]/g, '_')) || `file-${Date.now()}`;
+    const filename = `${Date.now()}-${name}`;
+    const filePath = path.join(uploadDir, filename);
+    await fsPromises.writeFile(filePath, buffer);
+    const relPath = `/uploads/${filename}`;
+    console.log('Uploaded file saved at:', filePath);
+    return NextResponse.json({ path: relPath }, { status: 200 });
+  } catch (err) {
+    console.error('Upload error:', err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
   }
-  form.uploadDir = uploadDir;
-  form.keepExtensions = true;
-
-  return new Promise((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
-      if (err) {
-        console.error("Error parsing the files", err);
-        return reject(
-          new Response(JSON.stringify({ error: "Error parsing the files" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          })
-        );
-      }
-      const file = files.image;
-      if (!file) {
-        return reject(
-          new Response(JSON.stringify({ error: "No file uploaded" }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          })
-        );
-      }
-      const filePath = file.path;
-      
-      console.log("Uploaded file saved at:", filePath);
-
-      resolve(
-        new Response(JSON.stringify({ filePath }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        })
-      );
-    });
-  });
 }

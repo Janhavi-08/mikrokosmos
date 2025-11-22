@@ -12,10 +12,15 @@ export default function UserDashboard() {
   const [search, setSearch] = useState("");
   const [filterCreator, setFilterCreator] = useState("");
   const [page, setPage] = useState(0);
-  const itemsPerPage = 3;
+  const itemsPerPage = 6;
   const [requests, setRequests] = useState([]);
+  const [requestsPage, setRequestsPage] = useState(0);
+  const requestsPerPage = 6;
   const [token, setToken] = useState(null);
   const [role, setRole] = useState(null);
+  // Creator pagination
+  const [creatorPage, setCreatorPage] = useState(0);
+  const creatorsPerPage = 6;
 
   useEffect(() => {
     let cancelled = false;
@@ -78,6 +83,9 @@ export default function UserDashboard() {
 
   // Reset page when filters change
   useEffect(() => setPage(0), [search, filterCreator]);
+  // Reset creator page if creators list changes
+  useEffect(() => setCreatorPage(0), [creators]);
+  useEffect(() => setRequestsPage(0), [requests]);
 
   if (!token) {
     return (
@@ -108,6 +116,12 @@ export default function UserDashboard() {
   const totalPages = Math.max(1, Math.ceil(filteredProjects.length / itemsPerPage));
   const pageProjects = filteredProjects.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
 
+  // Pagination for creators
+  const totalCreatorPages = Math.max(1, Math.ceil((Array.isArray(creators) ? creators.length : 0) / creatorsPerPage));
+  const pageCreators = Array.isArray(creators)
+    ? creators.slice(creatorPage * creatorsPerPage, (creatorPage + 1) * creatorsPerPage)
+    : [];
+
   return (
     <div className="max-w-6xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">All Projects</h1>
@@ -133,19 +147,24 @@ export default function UserDashboard() {
         </select>
       </div>
 
+      {/* 2 rows x 3 columns grid, max 6 per page */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {pageProjects.map(p => (
-          <div key={p.id} className="card overflow-hidden">
-            <img src={p.image} alt={p.title} className="w-full h-40 object-cover" />
-            <div className="p-3">
-              <h3 className="font-bold text-lg">{p.title}</h3>
-              <p className="text-sm muted mb-3">{p.description}</p>
-              <div className="flex space-x-2">
-                <button onClick={() => router.push(`/project/${p.id}`)} className="btn btn-primary">View Details</button>
+        {Array.from({ length: Math.min(6, pageProjects.length) }).map((_, idx) => {
+          const p = pageProjects[idx];
+          if (!p) return null;
+          return (
+            <div key={p.id} className="card overflow-hidden">
+              <img src={p.image} alt={p.title} className="w-full h-40 object-cover" />
+              <div className="p-3">
+                <h3 className="font-bold text-lg">{p.title}</h3>
+                <p className="text-sm muted mb-3">{p.description}</p>
+                <div className="flex space-x-2">
+                  <button onClick={() => router.push(`/project/${p.id}`)} className="btn btn-primary">View Details</button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Pagination controls */}
@@ -174,29 +193,66 @@ export default function UserDashboard() {
       <h2 className="text-2xl font-bold mt-8 mb-4">Your Requests</h2>
       <div className="space-y-4 mb-6">
         {requests.length === 0 && <p>No requests yet.</p>}
-        {requests.map((r, idx) => {
-          const proj = projects.find(p => p.id === r.projectId) || {};
+        {(() => {
+          const totalReqPages = Math.max(1, Math.ceil(requests.length / requestsPerPage));
+          const pageRequests = requests.slice(requestsPage * requestsPerPage, (requestsPage + 1) * requestsPerPage);
           return (
-            <div key={idx} className="card p-4">
-              <p><strong>Project:</strong> <button onClick={() => router.push(`/project/${r.projectId}`)} className="text-primary underline">{proj.title || r.projectId}</button></p>
-              <p><strong>Message:</strong> {r.message}</p>
-              {r.image && <img src={r.image} alt="Request Image" className="w-40 mt-2 rounded" />}
-              <p><strong>Status:</strong> {r.status}</p>
-            </div>
+            <>
+              {pageRequests.map((r, idx) => {
+                const proj = projects.find(p => p.id === r.projectId) || {};
+                return (
+                  <div key={idx} className="card p-4">
+                    <p><strong>Project:</strong> <button onClick={() => router.push(`/project/${r.projectId}`)} className="text-primary underline">{proj.title || r.projectId}</button></p>
+                    <p><strong>Message:</strong> {r.message}</p>
+                    {r.image && <img src={r.image} alt="Request Image" className="w-40 mt-2 rounded" />}
+                    <p><strong>Status:</strong> {r.status}</p>
+                  </div>
+                );
+              })}
+              <div className="flex items-center justify-between mt-2">
+                <div className="text-sm muted">{requests.length} requests</div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setRequestsPage(p => Math.max(0, p - 1))} disabled={requestsPage === 0} className="btn btn-ghost">Prev</button>
+                  <div className="text-sm muted">Page {requestsPage + 1} / {totalReqPages}</div>
+                  <button onClick={() => setRequestsPage(p => Math.min(totalReqPages - 1, p + 1))} disabled={requestsPage + 1 >= totalReqPages} className="btn btn-primary">Next</button>
+                </div>
+              </div>
+            </>
           );
-        })}
+        })()}
       </div>
 
       {/* Creators Section */}
       <h2 className="text-2xl font-bold mt-8 mb-4">Creators</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {Array.isArray(creators) && creators.map(c => (
+        {pageCreators.map(c => (
           <div key={c.id} className="card p-4 cursor-pointer hover:shadow-lg" onClick={() => router.push(`/creator/${c.id}`)}>
             <img src={c.image} alt={c.name} className="w-full h-40 object-cover rounded mb-2" />
             <h3 className="font-bold text-lg">{c.name}</h3>
             <p className="text-sm muted">{c.bio}</p>
           </div>
         ))}
+      </div>
+      {/* Creator Pagination controls */}
+      <div className="flex items-center justify-between mt-4">
+        <div className="text-sm muted">{Array.isArray(creators) ? creators.length : 0} creators</div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setCreatorPage(p => Math.max(0, p - 1))}
+            disabled={creatorPage === 0}
+            className="btn btn-ghost"
+          >
+            Prev
+          </button>
+          <div className="text-sm muted">Page {creatorPage + 1} / {totalCreatorPages}</div>
+          <button
+            onClick={() => setCreatorPage(p => Math.min(totalCreatorPages - 1, p + 1))}
+            disabled={creatorPage + 1 >= totalCreatorPages}
+            className="btn btn-primary"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

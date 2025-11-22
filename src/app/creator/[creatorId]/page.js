@@ -13,6 +13,8 @@ export default function CreatorPage() {
   const [creator, setCreator] = useState(null);
   const [projects, setProjects] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [requestsPage, setRequestsPage] = useState(0);
+  const requestsPerPage = 6;
   const [role, setRole] = useState(null);
 
   useEffect(() => {
@@ -52,6 +54,8 @@ if (roleFromStorage === 'creator') {
       }
     })();
   }, [creatorId]);
+
+  useEffect(() => setRequestsPage(0), [requests]);
 
   const handleRequestStatus = (index, status) => {
     (async () => {
@@ -126,30 +130,36 @@ if (roleFromStorage === 'creator') {
       <h2 className="text-2xl font-bold mb-2">Requests</h2>
       <div className="space-y-4">
         {requests.length === 0 && <p>No requests yet</p>}
-        {requests.map((r, idx) => (
-          <div key={idx} className="card p-3">
-            <p><strong>User:</strong> {r.user}</p>
-            <p><strong>Message:</strong> {r.message}</p>
-            {r.image && <img src={r.image} alt="Request Image" className="w-40 mt-2 rounded" />}
-            <p><strong>Status:</strong> {r.status}</p>
-                {r.status === "pending" && role === "creator" && (
-              <div className="mt-2 space-x-2" >
-                <button
-                  onClick={() => handleRequestStatus(idx, "accepted")}
-                  className="btn btn-success"
-                >
-                  Accept
-                </button>
-                <button
-                  onClick={() => handleRequestStatus(idx, "rejected")}
-                  className="btn btn-danger"
-                >
-                  Reject
-                </button>
+        {(() => {
+          const totalReqPages = Math.max(1, Math.ceil(requests.length / requestsPerPage));
+          const pageRequests = requests.slice(requestsPage * requestsPerPage, (requestsPage + 1) * requestsPerPage);
+          return (
+            <>
+              {pageRequests.map((r, idx) => (
+                <div key={idx} className="card p-3">
+                  <p><strong>User:</strong> {r.user}</p>
+                  <p><strong>Message:</strong> {r.message}</p>
+                  {r.image && <img src={r.image} alt="Request Image" className="w-40 mt-2 rounded" />}
+                  <p><strong>Status:</strong> {r.status}</p>
+                  {r.status === "pending" && role === "creator" && (
+                    <div className="mt-2 space-x-2" >
+                      <button onClick={() => handleRequestStatus(idx, "accepted")} className="btn btn-success">Accept</button>
+                      <button onClick={() => handleRequestStatus(idx, "rejected")} className="btn btn-danger">Reject</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="flex items-center justify-between mt-2">
+                <div className="text-sm muted">{requests.length} requests</div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setRequestsPage(p => Math.max(0, p - 1))} disabled={requestsPage === 0} className="btn btn-ghost">Prev</button>
+                  <div className="text-sm muted">Page {requestsPage + 1} / {totalReqPages}</div>
+                  <button onClick={() => setRequestsPage(p => Math.min(totalReqPages - 1, p + 1))} disabled={requestsPage + 1 >= totalReqPages} className="btn btn-primary">Next</button>
+                </div>
               </div>
-            )}
-          </div>
-        ))}
+            </>
+          );
+        })()}
       </div>
     </div>
   );

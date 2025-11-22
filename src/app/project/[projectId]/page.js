@@ -35,38 +35,55 @@ export default function ProjectDetailPage() {
     }
   }, [projectId]);
 
+  // Store the File object directly for upload
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setImageFile(reader.result);
-      reader.readAsDataURL(file);
+      setImageFile(file);
     }
   };
 
   const handleRequest = () => {
- debugger;
     if (!token || role !== "user") {
       router.push("/dashboard");
+      return;
     }
 
     (async () => {
       try {
-          let imagePath = null;
-
-    if (imageFile) {
-      const formData = new FormData();
-      formData.append("image", imageFile);
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const uploadData = await uploadRes.json();
-      imagePath = uploadData.filePath; // e.g., /uploads/myimage.jpg
-    }
+        let imagePath = null;
+        if (imageFile) {
+          const formData = new FormData();
+          formData.append("image", imageFile);
+          const uploadRes = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+          if (!uploadRes.ok) {
+            setStatusMsg("Image upload failed. Please try again.");
+            return;
+          }
+          let uploadData;
+          try {
+            uploadData = await uploadRes.json();
+          } catch (e) {
+            setStatusMsg("Image upload failed: Invalid server response.");
+            return;
+          }
+          imagePath = uploadData.path;
+        }
         const projectsRes = await fetch('/api/projects');
-        const projects = await projectsRes.json();
+        if (!projectsRes.ok) {
+          setStatusMsg('Failed to load projects. Please try again.');
+          return;
+        }
+        let projects;
+        try {
+          projects = await projectsRes.json();
+        } catch (e) {
+          setStatusMsg('Failed to parse projects data.');
+          return;
+        }
         const idx = projects.findIndex(p => p.id === projectId);
         if (idx === -1) {
           setStatusMsg('Project not found');
@@ -82,13 +99,18 @@ export default function ProjectDetailPage() {
         projects[idx].requests = projects[idx].requests || [];
         projects[idx].requests.push(newRequest);
         // persist full projects array
-        await fetch('/api/projects', {
+        const putRes = await fetch('/api/projects', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ projects }),
         });
+        if (!putRes.ok) {
+          setStatusMsg('Failed to save request. Please try again.');
+          return;
+        }
 
         setStatusMsg('Request sent!');
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Request sent', type: 'success' } }));
         setMessage('');
         setImageFile(null);
         const input = document.getElementById('request-image');
@@ -99,6 +121,12 @@ export default function ProjectDetailPage() {
       }
     })();
   };
+
+
+  // Related projects: show up to 3 others in a single row
+  const relatedProjects = projectsData.filter(
+    p => p.id !== projectId && p.creatorId === (project ? project.creatorId : null)
+  ).slice(0, 3);
 
   if (!project) return <p>Loading...</p>;
 
@@ -127,13 +155,19 @@ export default function ProjectDetailPage() {
         value={message}
         onChange={e => setMessage(e.target.value)}
       />
-      <input
-        type="file"
-        accept="image/*"
-        id="request-image"
-        className="w-full mb-2"
-        onChange={handleFileChange}
-      />
+      <label htmlFor="request-image" className="btn btn-ghost w-full mb-2 cursor-pointer text-left">
+        Add image for inspiration
+        <input
+          type="file"
+          accept="image/*"
+          id="request-image"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+      </label>
+      {imageFile && (
+        <div className="mb-2"><span className="text-sm">Selected: {imageFile.name}</span></div>
+      )}
       <button
         onClick={handleRequest}
         className="btn btn-primary"
@@ -141,6 +175,23 @@ export default function ProjectDetailPage() {
         Send Request
       </button>
       {statusMsg && <p className="text-success mt-2">{statusMsg}</p>}
+
+      {/* Related Projects Row */}
+      {relatedProjects.length > 0 && (
+        <>
+          <h2 className="text-xl font-bold mt-8 mb-2">More from this Creator</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {relatedProjects.map(rp => (
+              <div key={rp.id} className="card overflow-hidden cursor-pointer" onClick={() => router.push(`/project/${rp.id}`)}>
+                <img src={rp.image} alt={rp.title} className="w-full h-32 object-cover" />
+                <div className="p-2">
+                  <h3 className="font-bold text-md">{rp.title}</h3>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
