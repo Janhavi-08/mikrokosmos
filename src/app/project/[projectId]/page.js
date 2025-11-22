@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import projectsData from "../../../data/projects.json";
@@ -16,9 +15,15 @@ export default function ProjectDetailPage() {
   const [message, setMessage] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [statusMsg, setStatusMsg] = useState("");
+ const [token, setToken] = useState(null);
+  const [role, setRole] = useState(null);
 
-  const token = localStorage.getItem("token"); // user must be logged in
-  const role = localStorage.getItem("role");
+  useEffect(() => {
+    setToken(localStorage.getItem("token"));
+    setRole(localStorage.getItem("role"));
+  }, []);
+  // const token = localStorage.getItem("token"); // user must be logged in
+  // const role = localStorage.getItem("role");
 
   useEffect(() => {
     const proj = projectsData.find(p => p.id === projectId);
@@ -40,14 +45,26 @@ export default function ProjectDetailPage() {
   };
 
   const handleRequest = () => {
-    if (!token) {
+ debugger;
+    if (!token || role !== "user") {
       router.push("/dashboard");
     }
-    if (role !== "user") {
-      router.push("/dashboard");
-    }
+
     (async () => {
       try {
+          let imagePath = null;
+
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append("image", imageFile);
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const uploadData = await uploadRes.json();
+      imagePath = uploadData.filePath; // e.g., /uploads/myimage.jpg
+    }
         const projectsRes = await fetch('/api/projects');
         const projects = await projectsRes.json();
         const idx = projects.findIndex(p => p.id === projectId);
@@ -59,7 +76,7 @@ export default function ProjectDetailPage() {
           projectId,
           user: token,
           message,
-          image: imageFile || null,
+          image: imagePath,
           status: 'pending',
         };
         projects[idx].requests = projects[idx].requests || [];
