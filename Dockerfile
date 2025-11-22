@@ -19,6 +19,13 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
+# Copy the entire source tree so runtime has access to `src/` (including `src/data`)
+COPY --from=builder /app/src ./src
+
+# Ensure src/data exists and is readable/writable by the container runtime
+RUN mkdir -p ./src/data || true
+RUN chmod -R 755 ./src || true
+
 EXPOSE 3000
 
 CMD ["npm", "start"]
