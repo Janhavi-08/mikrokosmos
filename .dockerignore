@@ -1,0 +1,21 @@
+node_modules
+.next
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+
+# Local env
+.env
+.env.local
+.env.development
+.env.production
+
+# Editor stuff
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db

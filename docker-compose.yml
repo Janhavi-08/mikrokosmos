@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  mikrokosmos:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mikrokosmos-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./public/uploads:/app/public/uploads
+      - ./src/data:/app/src/data
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
