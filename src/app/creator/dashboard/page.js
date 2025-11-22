@@ -346,7 +346,7 @@ export default function CreatorDashboard() {
          <img
   src={profileForm.image || creatorInfo.image || '/uploads/default-avatar.png'}
   alt={creatorInfo.name}
-  className="w-30 h-30 object-cover rounded-full shadow-md"
+  className="w-24 h-24 object-cover rounded-full shadow-md"
 />
 
             <div className="flex-1">
