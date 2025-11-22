@@ -21,7 +21,15 @@
     "title": "Wall Art",
     "description": "Colorful wall painting",
     "image": "/uploads/project2.jpg",
-    "requests": []
+    "requests": [
+      {
+        "projectId": "project-2",
+        "user": "test",
+        "message": "test",
+        "image": "/uploads/1763818562174-coffee.jpg",
+        "status": "pending"
+      }
+    ]
   },
   {
     "id": "project-3",

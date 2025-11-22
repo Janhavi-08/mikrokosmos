@@ -14,7 +14,6 @@ export default function ProjectDetailPage() {
   const [creator, setCreator] = useState(null);
   const [message, setMessage] = useState("");
   const [imageFile, setImageFile] = useState(null);
-  const [statusMsg, setStatusMsg] = useState("");
  const [token, setToken] = useState(null);
   const [role, setRole] = useState(null);
 
@@ -60,33 +59,33 @@ export default function ProjectDetailPage() {
             body: formData,
           });
           if (!uploadRes.ok) {
-            setStatusMsg("Image upload failed. Please try again.");
+            window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Image upload failed. Please try again.', type: 'error' } }));
             return;
           }
           let uploadData;
           try {
             uploadData = await uploadRes.json();
           } catch (e) {
-            setStatusMsg("Image upload failed: Invalid server response.");
+            window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Image upload failed: Invalid server response.', type: 'error' } }));
             return;
           }
           imagePath = uploadData.path;
         }
         const projectsRes = await fetch('/api/projects');
         if (!projectsRes.ok) {
-          setStatusMsg('Failed to load projects. Please try again.');
+          window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Failed to load projects. Please try again.', type: 'error' } }));
           return;
         }
         let projects;
         try {
           projects = await projectsRes.json();
         } catch (e) {
-          setStatusMsg('Failed to parse projects data.');
+          window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Failed to parse projects data.', type: 'error' } }));
           return;
         }
         const idx = projects.findIndex(p => p.id === projectId);
         if (idx === -1) {
-          setStatusMsg('Project not found');
+          window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Project not found', type: 'error' } }));
           return;
         }
         const newRequest = {
@@ -105,11 +104,9 @@ export default function ProjectDetailPage() {
           body: JSON.stringify({ projects }),
         });
         if (!putRes.ok) {
-          setStatusMsg('Failed to save request. Please try again.');
+          window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Failed to save request. Please try again.', type: 'error' } }));
           return;
         }
-
-        setStatusMsg('Request sent!');
         window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Request sent', type: 'success' } }));
         setMessage('');
         setImageFile(null);
@@ -117,7 +114,7 @@ export default function ProjectDetailPage() {
         if (input) input.value = '';
       } catch (err) {
         console.error(err);
-        setStatusMsg('Failed to send request');
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Failed to send request', type: 'error' } }));
       }
     })();
   };
@@ -174,7 +171,6 @@ export default function ProjectDetailPage() {
       >
         Send Request
       </button>
-      {statusMsg && <p className="text-success mt-2">{statusMsg}</p>}
 
       {/* Related Projects Row */}
       {relatedProjects.length > 0 && (
