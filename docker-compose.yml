@@ -9,7 +9,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./public/uploads:/app/public/uploads
+      - ./public:/app/public
       - ./src/data:/app/src/data
     environment:
       - NODE_ENV=production
