@@ -8,9 +8,12 @@ services:
     container_name: mikrokosmos-app
     ports:
       - "3000:3000"
+
+    # IMPORTANT: mount entire public folder, not just uploads
     volumes:
       - ./public:/app/public
       - ./src/data:/app/src/data
+
     environment:
       - NODE_ENV=production
     restart: unless-stopped
