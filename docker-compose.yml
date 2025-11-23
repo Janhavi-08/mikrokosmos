@@ -9,7 +9,7 @@ services:
     ports:
       - "3000:3000"
 
-    # IMPORTANT: mount entire public folder, not just uploads
+    # Mount the full public folder so runtime additions are served correctly
     volumes:
       - ./public:/app/public
       - ./src/data:/app/src/data

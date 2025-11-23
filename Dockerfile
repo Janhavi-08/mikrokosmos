@@ -20,8 +20,10 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 
-# DO NOT COPY public here — it will be mounted as a volume
-# COPY --from=builder /app/public ./public
+# Copy public into the runtime image so static files are available
+# If you mount `./public` from the host with Docker Compose, the host
+# files will override the image contents — that's expected and desired.
+COPY --from=builder /app/public ./public
 
 # Ensure runtime data folder exists
 RUN mkdir -p ./src/data
