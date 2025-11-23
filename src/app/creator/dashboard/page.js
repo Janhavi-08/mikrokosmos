@@ -105,7 +105,16 @@ export default function CreatorDashboard() {
         }
         let upData;
         try { upData = await upRes.json(); } catch (e) { console.error('Invalid upload response', e); return; }
-        if (upData.path) formToSave.image = upData.path;
+        if (upData.path) {
+          // ensure the uploaded profile image is reachable before saving
+          const ok = await verifyUrl(upData.path);
+          if (ok) {
+            formToSave.image = upData.path;
+          } else {
+            formToSave.image = upData.path; // still save path, but notify user
+            window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Profile uploaded but image may not be immediately available', type: 'warning' } }));
+          }
+        }
       }
 
       const res = await fetch('/api/creators');
@@ -124,6 +133,20 @@ export default function CreatorDashboard() {
   // Handle text input changes
   const handleNewProjectChange = (e) => setNewProject({ ...newProject, [e.target.name]: e.target.value });
 
+  // Verify a URL is reachable (HEAD) with a few retries — helpful in dev where file availability may be slightly delayed
+  const verifyUrl = async (url, retries = 5, delayMs = 200) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const res = await fetch(url, { method: 'HEAD' });
+        if (res.ok) return true;
+      } catch (err) {
+        // ignore and retry
+      }
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+    return false;
+  };
+
   // Handle image file upload for project
   const handleProjectImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -139,7 +162,15 @@ export default function CreatorDashboard() {
       let data;
       try { data = await res.json(); } catch (e) { setNewProjectError('Invalid upload response'); return; }
       if (data.path) {
-        setNewProject(prev => ({ ...prev, image: data.path }));
+        // wait until the uploaded file is actually reachable (dev servers can be slightly delayed)
+        const ok = await verifyUrl(data.path);
+        if (ok) {
+          setNewProject(prev => ({ ...prev, image: data.path }));
+        } else {
+          // still set it so user can try, but show an error/toast
+          setNewProject(prev => ({ ...prev, image: data.path }));
+          setNewProjectError('Uploaded but image not immediately available — try refreshing');
+        }
       } else {
         setNewProjectError('Image upload failed');
       }
@@ -335,6 +366,14 @@ export default function CreatorDashboard() {
     setFormData({...formData, [e.target.name]: e.target.value});
   };
 
+  const normalizeUrl = (url) => {
+    if (!url) return url;
+    if (typeof url !== 'string') return url;
+    if (url.startsWith('/api/') || url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
+    if (url.startsWith('/uploads/')) return `/uploads/${url.slice('/uploads/'.length)}`;
+    return url;
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Creator Dashboard</h1>
@@ -344,10 +383,11 @@ export default function CreatorDashboard() {
         <div className="card p-4 mb-6 no-hover">
           <div className="flex items-center gap-4">
          <img
-  src={profileForm.image || creatorInfo.image || '/uploads/default-avatar.png'}
+  src={normalizeUrl(profileForm.image || creatorInfo.image || 'default-avatar.png')}
   alt={creatorInfo.name}
   className="w-24 h-24 object-cover rounded-full shadow-md"
-/>
+/
+>
 
             <div className="flex-1">
               <div className="flex items-center justify-between">
@@ -436,7 +476,7 @@ export default function CreatorDashboard() {
             <>
               {pageProjects.map(project => (
                 <div key={project.id} className="card p-4">
-                  <img src={project.image || '/uploads/default-project.jpg'} alt={project.title} className="w-full h-40 object-cover rounded mb-3" />
+                  <img src={normalizeUrl(project.image || '/uploads/default-project.jpg')} alt={project.title} className="w-full h-40 object-cover rounded mb-3" />
                   <div>
                     <h3 className="font-bold text-xl">{project.title}</h3>
                     <p className="muted">{project.description}</p>
@@ -473,7 +513,7 @@ export default function CreatorDashboard() {
                 <div key={idx} className="card p-4">
                   <p><strong>User:</strong> {r.user}</p>
                   <p><strong>Message:</strong> {r.message}</p>
-                  {r.image && <img src={r.image} alt="Request Image" className="w-40 mt-2 rounded" />}
+                  {r.image && <img src={normalizeUrl(r.image)} alt="Request Image" className="w-40 mt-2 rounded" />}
                   <p><strong>Status:</strong> {r.status}</p>
                   {r.status === "pending" && (
                     <div className="mt-2 space-x-2">

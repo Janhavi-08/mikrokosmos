@@ -138,8 +138,8 @@
     "id": "project-1763757286216",
     "creatorId": "creator-1763755996700",
     "title": "test",
-    "description": "",
-    "image": "/uploads/default-project.jpg",
+    "description": "jlkjlkjasfasfsadfsadf",
+    "image": "/uploads/1763895735148-hjh.jpg",
     "requests": []
   },
   {
@@ -163,7 +163,7 @@
     "creatorId": "creator-1763755996700",
     "title": "test1",
     "description": "test test sjlklakjfsdfa",
-    "image":"",
+    "image": "",
     "requests": [
       {
         "projectId": "project-1763795742671",

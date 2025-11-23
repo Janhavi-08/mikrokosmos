@@ -21,7 +21,7 @@ export async function POST(request) {
     const filePath = path.join(uploadDir, filename);
     await fsPromises.writeFile(filePath, buffer);
     // Return the dynamic API path so the frontend fetches through the file-serve API
-    const relPath = `/api/uploads/${filename}`;
+    const relPath = `/uploads/${filename}`;
     console.log('Uploaded file saved at:', filePath);
     return NextResponse.json({ path: relPath }, { status: 200 });
   } catch (err) {
