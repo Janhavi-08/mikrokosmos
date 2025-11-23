@@ -20,7 +20,8 @@ export async function POST(request) {
     const filename = `${Date.now()}-${name}`;
     const filePath = path.join(uploadDir, filename);
     await fsPromises.writeFile(filePath, buffer);
-    const relPath = `/uploads/${filename}`;
+    // Return the dynamic API path so the frontend fetches through the file-serve API
+    const relPath = `/api/uploads/${filename}`;
     console.log('Uploaded file saved at:', filePath);
     return NextResponse.json({ path: relPath }, { status: 200 });
   } catch (err) {

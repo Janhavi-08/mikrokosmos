@@ -8,7 +8,8 @@ export async function GET() {
     let files = [];
     try {
       const list = await fs.readdir(uploadDir);
-      files = list.filter(f => f && f[0] !== '.').map(f => `/uploads/${f}`);
+      // Expose files via the dynamic API endpoint to avoid static-serving issues
+      files = list.filter(f => f && f[0] !== '.').map(f => `/api/uploads/${f}`);
     } catch (e) {
       // directory may not exist yet
       files = [];
