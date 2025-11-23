@@ -28,6 +28,10 @@ export async function GET(request, { params }) {
     if (!filename) return NextResponse.json({ error: 'Missing file name' }, { status: 400 });
 
     const absPath = path.join(process.cwd(), 'public', 'uploads', filename);
+    // Debug logs to help diagnose container path issues
+    console.log('GET /api/uploads request for:', filename);
+    console.log('process.cwd():', process.cwd());
+    console.log('Resolved absPath:', absPath);
     // Prevent path traversal
     if (!absPath.startsWith(path.join(process.cwd(), 'public', 'uploads'))) {
       return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
