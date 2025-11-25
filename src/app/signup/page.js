@@ -51,7 +51,7 @@ export default function SignupPage() {
           }
           let data;
           try { data = await res.json(); } catch (e) { throw new Error('Invalid upload response'); }
-          if (data.path) imagePath = data.path;
+          if (data.url) imagePath = data.url;
         }
         const creatorEntry = {
           id: `creator-${Date.now()}`,

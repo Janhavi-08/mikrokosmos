@@ -105,13 +105,13 @@ export default function CreatorDashboard() {
         }
         let upData;
         try { upData = await upRes.json(); } catch (e) { console.error('Invalid upload response', e); return; }
-        if (upData.path) {
+        if (upData.url) {
           // ensure the uploaded profile image is reachable before saving
-          const ok = await verifyUrl(upData.path);
+          const ok = await verifyUrl(upData.url);
           if (ok) {
-            formToSave.image = upData.path;
+            formToSave.image = upData.url;
           } else {
-            formToSave.image = upData.path; // still save path, but notify user
+            formToSave.image = upData.url; // still save url, but notify user
             window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Profile uploaded but image may not be immediately available', type: 'warning' } }));
           }
         }
@@ -161,14 +161,14 @@ export default function CreatorDashboard() {
       }
       let data;
       try { data = await res.json(); } catch (e) { setNewProjectError('Invalid upload response'); return; }
-      if (data.path) {
+      if (data.url) {
         // wait until the uploaded file is actually reachable (dev servers can be slightly delayed)
-        const ok = await verifyUrl(data.path);
+        const ok = await verifyUrl(data.url);
         if (ok) {
-          setNewProject(prev => ({ ...prev, image: data.path }));
+          setNewProject(prev => ({ ...prev, image: data.url }));
         } else {
           // still set it so user can try, but show an error/toast
-          setNewProject(prev => ({ ...prev, image: data.path }));
+          setNewProject(prev => ({ ...prev, image: data.url }));
           setNewProjectError('Uploaded but image not immediately available — try refreshing');
         }
       } else {
@@ -383,7 +383,7 @@ export default function CreatorDashboard() {
         <div className="card p-4 mb-6 no-hover">
           <div className="flex items-center gap-4">
          <img
-  src={normalizeUrl(profileForm.image || creatorInfo.image || 'default-avatar.png')}
+  src={profileForm.image || creatorInfo.image || 'default-avatar.png'}
   alt={creatorInfo.name}
   className="w-24 h-24 object-cover rounded-full shadow-md"
 /
@@ -476,7 +476,7 @@ export default function CreatorDashboard() {
             <>
               {pageProjects.map(project => (
                 <div key={project.id} className="card p-4">
-                  <img src={normalizeUrl(project.image || '/uploads/default-project.jpg')} alt={project.title} className="w-full h-40 object-cover rounded mb-3" />
+                  <img src={project.image || '/uploads/default-project.jpg'} alt={project.title} className="w-full h-40 object-cover rounded mb-3" />
                   <div>
                     <h3 className="font-bold text-xl">{project.title}</h3>
                     <p className="muted">{project.description}</p>
@@ -513,7 +513,7 @@ export default function CreatorDashboard() {
                 <div key={idx} className="card p-4">
                   <p><strong>User:</strong> {r.user}</p>
                   <p><strong>Message:</strong> {r.message}</p>
-                  {r.image && <img src={normalizeUrl(r.image)} alt="Request Image" className="w-40 mt-2 rounded" />}
+                  {r.image && <img src={r.image} alt="Request Image" className="w-40 mt-2 rounded" />}
                   <p><strong>Status:</strong> {r.status}</p>
                   {r.status === "pending" && (
                     <div className="mt-2 space-x-2">

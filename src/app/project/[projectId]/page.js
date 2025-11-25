@@ -69,7 +69,7 @@ export default function ProjectDetailPage() {
             window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Image upload failed: Invalid server response.', type: 'error' } }));
             return;
           }
-          imagePath = uploadData.path;
+          imagePath = uploadData.url;
         }
         const projectsRes = await fetch('/api/projects');
         if (!projectsRes.ok) {
