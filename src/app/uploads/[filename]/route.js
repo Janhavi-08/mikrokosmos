@@ -2,28 +2,46 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-export async function GET(req, { params }) {
-  const { filename } = params;
+export async function GET(req, { params } = {}) {
+  try {
+    if (!params) {
+      return new NextResponse('Missing filename', { status: 400 });
+    }
 
-  const filePath = path.join(process.cwd(), "public", "uploads", filename);
+    let { filename } = params;
+    // Support catch-all (array) or single param
+    if (Array.isArray(filename)) filename = filename.join('/');
+    if (!filename) return new NextResponse('Missing filename', { status: 400 });
 
-  if (!fs.existsSync(filePath)) {
-    return new NextResponse("File not found", { status: 404 });
+    // Decode in case of encoded characters
+    filename = decodeURIComponent(String(filename));
+
+    const filePath = path.join(process.cwd(), 'public', 'uploads', filename);
+
+    if (!fs.existsSync(filePath)) {
+      return new NextResponse('File not found', { status: 404 });
+    }
+
+    const stats = fs.statSync(filePath);
+    const fileStream = fs.createReadStream(filePath);
+
+    // Detect content type
+    const ext = path.extname(filename).toLowerCase();
+    let contentType = 'image/jpeg';
+    if (ext === '.png') contentType = 'image/png';
+    if (ext === '.webp') contentType = 'image/webp';
+    if (ext === '.gif') contentType = 'image/gif';
+    if (ext === '.svg') contentType = 'image/svg+xml';
+
+    return new NextResponse(fileStream, {
+      headers: {
+        'Content-Type': contentType,
+        'Content-Length': String(stats.size),
+        'Cache-Control': 'public, max-age=31536000',
+      },
+    });
+  } catch (err) {
+    console.error('uploads route error:', err);
+    return new NextResponse(String(err), { status: 500 });
   }
-
-  const fileBuffer = fs.readFileSync(filePath);
-
-  // Detect content type
-  const ext = path.extname(filename).toLowerCase();
-  let contentType = "image/jpeg";
-  if (ext === ".png") contentType = "image/png";
-  if (ext === ".webp") contentType = "image/webp";
-  if (ext === ".gif") contentType = "image/gif";
-
-  return new NextResponse(fileBuffer, {
-    headers: {
-      "Content-Type": contentType,
-      "Cache-Control": "public, max-age=31536000",
-    },
-  });
 }
