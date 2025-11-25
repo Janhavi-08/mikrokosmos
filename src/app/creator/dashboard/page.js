@@ -154,6 +154,7 @@ export default function CreatorDashboard() {
     const formData = new FormData();
     formData.append('image', file);
     try {
+      debugger;
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       if (!res.ok) {
         setNewProjectError('Image upload failed');
@@ -162,7 +163,6 @@ export default function CreatorDashboard() {
       let data;
       try { data = await res.json(); } catch (e) { setNewProjectError('Invalid upload response'); return; }
       if (data.url) {
-        // wait until the uploaded file is actually reachable (dev servers can be slightly delayed)
         const ok = await verifyUrl(data.url);
         if (ok) {
           setNewProject(prev => ({ ...prev, image: data.url }));
@@ -185,6 +185,8 @@ export default function CreatorDashboard() {
       alert('No creator context');
       return;
     }
+          debugger;
+
     // client-side validation
     setNewProjectError('');
     if (!newProject.title || newProject.title.trim().length < 3) {
