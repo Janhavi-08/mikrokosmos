@@ -25,6 +25,7 @@ COPY --from=builder /app/.next ./.next
 # files will override the image contents — that's expected and desired.
 COPY --from=builder /app/public ./public
 
+RUN mkdir -p /app/public/uploads
 # Ensure runtime data folder exists
 RUN mkdir -p ./src/data
 RUN chmod -R 755 ./src
