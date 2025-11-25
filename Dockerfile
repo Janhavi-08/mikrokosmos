@@ -21,8 +21,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
-RUN mkdir -p /app/public/uploads
-RUN chmod -R 777 /app/public/uploads
+RUN mkdir -p public/uploads
+RUN chmod -R 777 public/uploads
 
 RUN mkdir -p ./src/data
 RUN chmod -R 755 ./src
