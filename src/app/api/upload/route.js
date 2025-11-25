@@ -20,8 +20,10 @@ export async function POST(request) {
     const filename = `${Date.now()}-${name}`;
     const filePath = path.join(uploadDir, filename);
     await fsPromises.writeFile(filePath, buffer);
-    // Return the dynamic API path so the frontend fetches through the file-serve API
-    const relPath = `/uploads/${filename}`;
+    // Return an absolute URL to the saved file so the client can verify/fetch it reliably
+    const host = (request.headers && request.headers.get && request.headers.get('host')) || 'localhost:3000';
+    const proto = (request.headers && request.headers.get && request.headers.get('x-forwarded-proto')) || 'http';
+    const relPath = `${proto}://${host}/uploads/${filename}`;
     console.log('Uploaded file saved at:', filePath);
     return NextResponse.json({ path: relPath }, { status: 200 });
   } catch (err) {
