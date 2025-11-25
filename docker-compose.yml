@@ -11,7 +11,7 @@ services:
 
     # Mount the full public folder so runtime additions are served correctly
     volumes:
-      - ./public:/app/public
+      - ./public/uploads:/app/public/uploads
       - ./src/data:/app/src/data
 
     environment:
