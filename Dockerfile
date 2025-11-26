@@ -15,11 +15,7 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-# Copy only necessary build output
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
+COPY . .
 
 RUN mkdir -p public/uploads
 RUN chmod -R 777 public/uploads
