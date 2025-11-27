@@ -4,7 +4,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
 RUN npm run build
@@ -15,18 +15,14 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-# Copy only necessary build output
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+COPY . .
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
 
 RUN mkdir -p public/uploads
-RUN chmod -R 777 public/uploads
-
-RUN mkdir -p ./src/data
-RUN chmod -R 755 ./src
 
 EXPOSE 3000
-
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
