@@ -220,5 +220,13 @@
     "description": "asjdkfljalskdfjlasjdflkjsdf",
     "image": "/uploads/default-project.jpg",
     "requests": []
+  },
+  {
+    "id": "project-1764255062737",
+    "creatorId": "creator-1763755996700",
+    "title": "test",
+    "description": "djlkglskdjglkjdfg",
+    "image": "/uploads/1764255056264-Janhavi_Patil.jpg",
+    "requests": []
   }
 ]

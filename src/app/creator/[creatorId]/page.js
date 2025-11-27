@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
+import { getImageUrl } from '../../../lib/getImageUrl';
 import { useParams } from "next/navigation";
 import creatorsData from "../../../data/creators.json";
 import projectsData from "../../../data/projects.json";
@@ -103,7 +104,7 @@ if (roleFromStorage === 'creator') {
       </div>
      <div className="shadow-lg rounded-lg overflow-hidden flex items-center p-6">
   <img
-    src={creator.image || '/uploads/default-avatar.png'}
+    src={creator.image || getImageUrl('default-avatar.png')}
     alt={creator.name}
     className="w-32 h-32 object-cover rounded-full shadow-md"
   />

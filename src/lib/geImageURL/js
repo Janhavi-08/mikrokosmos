@@ -1,0 +1,10 @@
+export function getImageUrl(filename) {
+  const isDev = process.env.NODE_ENV === "development";
+
+  if (isDev) {
+    return `/uploads/${filename}`;
+  }
+
+  // production
+  return `/api/uploads/${filename}`;
+}

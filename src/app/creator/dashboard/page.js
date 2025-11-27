@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { getImageUrl } from '../../../lib/getImageUrl';
 import projectsData from "../../../data/projects.json";
 import Modal from '../../../components/Modal';
 
@@ -210,7 +211,7 @@ export default function CreatorDashboard() {
       }
     }
 
-    const proj = { id: `project-${Date.now()}`, creatorId: creatorInfo.id, title: newProject.title.trim(), description: newProject.description.trim(), image: newProject.image || '/uploads/default-project.jpg', requests: [] };
+    const proj = { id: `project-${Date.now()}`, creatorId: creatorInfo.id, title: newProject.title.trim(), description: newProject.description.trim(), image: newProject.image || getImageUrl('default-project.jpg'), requests: [] };
     setIsSubmitting(true);
     try {
       const projRes = await fetch('/api/projects');
@@ -292,7 +293,7 @@ export default function CreatorDashboard() {
         creatorId: creatorInfo.id,
         title: newProject.title.trim(),
         description: newProject.description.trim(),
-        image: newProject.image || '/uploads/default-project.jpg',
+        image: newProject.image || getImageUrl('default-project.jpg'),
         requests: existing.requests || [],
       };
       const merged = allProjects.map(p => p.id === editingProject ? updatedProject : p);
@@ -368,14 +369,6 @@ export default function CreatorDashboard() {
     setFormData({...formData, [e.target.name]: e.target.value});
   };
 
-  const normalizeUrl = (url) => {
-    if (!url) return url;
-    if (typeof url !== 'string') return url;
-    if (url.startsWith('/api/') || url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
-    if (url.startsWith('/uploads/')) return `/uploads/${url.slice('/uploads/'.length)}`;
-    return url;
-  };
-
   return (
     <div className="max-w-5xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Creator Dashboard</h1>
@@ -388,8 +381,7 @@ export default function CreatorDashboard() {
   src={profileForm.image || creatorInfo.image || 'default-avatar.png'}
   alt={creatorInfo.name}
   className="w-24 h-24 object-cover rounded-full shadow-md"
-/
->
+/>
 
             <div className="flex-1">
               <div className="flex items-center justify-between">
@@ -478,7 +470,7 @@ export default function CreatorDashboard() {
             <>
               {pageProjects.map(project => (
                 <div key={project.id} className="card p-4">
-                  <img src={project.image || '/uploads/default-project.jpg'} alt={project.title} className="w-full h-40 object-cover rounded mb-3" />
+                  <img src={project.image || getImageUrl('default-project.jpg')} alt={project.title} className="w-full h-40 object-cover rounded mb-3" />
                   <div>
                     <h3 className="font-bold text-xl">{project.title}</h3>
                     <p className="muted">{project.description}</p>

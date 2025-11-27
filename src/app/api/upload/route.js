@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
-import fsPromises from 'fs/promises';
 import path from 'path';
+import { getImageUrl } from '../../../lib/getImageUrl';
 
 export async function POST(request) {
   try {
@@ -19,11 +19,14 @@ export async function POST(request) {
   
     const name = (file.name && file.name.replace(/[^a-zA-Z0-9._-]/g, '_')) || `file-${Date.now()}`;
     const filename = `${Date.now()}-${name}`;
-    const filePath = path.join(uploadDir, filename);
-    await fs.promises.writeFile(filePath, buffer);
-  
+
+    const uploadPath = path.join(uploadDir, filename);
+
+    fs.writeFileSync(uploadPath, buffer);
+
     return NextResponse.json({
-      url: `/uploads/${filename}`,
+      url: getImageUrl(filename), // This will be handled by GET route
+      filename,
     });
   } catch (err) {
     console.error('Upload error:', err);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getImageUrl } from '../../lib/getImageUrl';
 import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
@@ -58,7 +59,7 @@ export default function SignupPage() {
           name: username,
           username,
           bio: bio || '',
-          image: imagePath || '/uploads/default-avatar.png',
+          image: imagePath || getImageUrl('default-avatar.png'),
         };
         await fetch('/api/creators', {
           method: 'POST',
