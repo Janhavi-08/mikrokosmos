@@ -9,7 +9,7 @@ export async function GET(req, { params } = {}) {
       return new NextResponse('Missing filename', { status: 400 });
     }
 
-    const filename = params.filename;
+    let filename = params.filename;
     // Support catch-all (array) or single param
     if (!filename) return new NextResponse('Missing filename', { status: 400 });
 
